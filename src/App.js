@@ -1,27 +1,18 @@
-import logo from './logo.svg';
-import './App.css';
-import { DatePicker } from 'antd';
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import Home from "./pages/Home";
+import Register from "./pages/Register";
+import Test from "./pages/Test";
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-        <DatePicker />
-      </header>
-    </div>
+    <Router>
+      <Switch>
+        <Route path="/test" component={Test} />
+        <Route path="/register" component={Register} />
+        <Route path="/" component={Home} />
+      </Switch>
+    </Router>
   );
-}
+};
 
 export default App;
