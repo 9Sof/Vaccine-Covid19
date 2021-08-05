@@ -20,3 +20,8 @@ $ npx tailwindcss-cli@latest init
 ```bash
 $ npm install
 ```
+
+## Run
+```bash
+$ npm start
+```
