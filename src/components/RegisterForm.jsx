@@ -12,21 +12,40 @@ import {
 } from "antd";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { useHistory } from "react-router-dom";
+import axios from "axios";
+
+const USERS_API = "http://localhost:8000/users";
 
 const RegisterForm = () => {
   const history = useHistory();
   const [otp, setOTP] = useState("");
   const [checkOTP, setCheckOTP] = useState(false);
-  const OTPmock = "1111";
+  const [OTPmock, setOTPmock] = useState(null);
+
+  const OTPVerify = async (phone_number) => {
+    await axios
+      .post(`${USERS_API}/otp`, { phone_number })
+      .then((response) => {
+        // handle success
+        setOTPmock(response.data.otp[phone_number]);
+      })
+      .catch((error) => {
+        // handle error
+        console.log(error);
+      });
+  };
 
   useEffect(() => {
-    if (otp === OTPmock) {
+    console.log(OTPmock);
+    if (+otp === OTPmock) {
       setCheckOTP(true);
       Modal.destroyAll();
     }
-  }, [otp]);
+  }, [otp, OTPmock]);
 
   const onOTP = (values) => {
+    OTPVerify(values.phone_number);
+
     Modal.confirm({
       title: `โปรดใส่หมายเลข OTP ที่ส่งทางเบอร์ 
         ******${values.phone_number.slice(-4)}`,
