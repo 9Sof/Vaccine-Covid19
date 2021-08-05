@@ -22,12 +22,29 @@ const RegisterForm = () => {
   const [checkOTP, setCheckOTP] = useState(false);
   const [OTPmock, setOTPmock] = useState(null);
 
-  const OTPVerify = async (phone_number) => {
+  const OTPVerify = async (phone_number, id_card) => {
     await axios
-      .post(`${USERS_API}/otp`, { phone_number })
+      .post(`${USERS_API}/otp`, { phone_number, id_card })
       .then((response) => {
         // handle success
-        setOTPmock(response.data.otp[phone_number]);
+        if (response.data.status === "success") {
+          setOTPmock(response.data.phoneOTP[phone_number]);
+        } else {
+          setOTPmock(null);
+        }
+      })
+      .catch((error) => {
+        // handle error
+        console.log(error);
+      });
+  };
+
+  const onRegister = async (values) => {
+    await axios
+      .post(`${USERS_API}/register`, { ...values })
+      .then((response) => {
+        // handle success
+        console.log(response.data);
       })
       .catch((error) => {
         // handle error
@@ -44,30 +61,30 @@ const RegisterForm = () => {
   }, [otp, OTPmock]);
 
   const onOTP = (values) => {
-    OTPVerify(values.phone_number);
-
-    Modal.confirm({
-      title: `โปรดใส่หมายเลข OTP ที่ส่งทางเบอร์ 
+    OTPVerify(values.phone_number, values.id_card);
+    if (OTPmock) {
+      Modal.confirm({
+        title: `โปรดใส่หมายเลข OTP ที่ส่งทางเบอร์ 
         ******${values.phone_number.slice(-4)}`,
-      icon: <ExclamationCircleOutlined />,
-      content: (
-        <div className="text-center">
-          <Input
-            className="w-auto"
-            onChange={(e) => setOTP(e.target.value)}
-            placeholder="OTP"
-          />
-        </div>
-      ),
-      okText: "ยืนยัน",
-      cancelText: "ยกเลิก",
-      onOk() {},
-      onCancel() {
-        console.log("ยกเลิก");
-      },
-    });
+        icon: <ExclamationCircleOutlined />,
+        content: (
+          <div className="text-center">
+            <Input
+              className="w-auto"
+              onChange={(e) => setOTP(e.target.value)}
+              placeholder="OTP"
+            />
+          </div>
+        ),
+        okText: "ยืนยัน",
+        cancelText: "ยกเลิก",
+        onOk() {},
+        onCancel() {
+          console.log("ยกเลิก");
+        },
+      });
+    }
   };
-
   const onSubmit = (values) => {
     Modal.confirm({
       title: "ลงทะเบียนฉีด Vaccine Covid-19?",
@@ -77,6 +94,7 @@ const RegisterForm = () => {
       cancelText: "ยกเลิก",
       onOk() {
         console.log("ยืนยัน", values);
+        onRegister(values);
         notification.success({
           message: "สำเร็จ!",
           description: "ทำการลงทะเบียนฉีด Vaccine Covid-19 สำเร็จ",
