@@ -1,11 +1,12 @@
-import React from 'react'
+import React from "react";
 
 const Confirmation = () => {
-    return (
-        <div>
-            
-        </div>
-    )
-}
+ 
+  return (
+    <div>
+        
+    </div>
+  );
+};
 
-export default Confirmation
+export default Confirmation;
