@@ -5,6 +5,7 @@ https://github.com/9Sof/Vaccine-Covid19
 ### node v16.6.0
 
 ## Install Tailwind CSS
+
 ```bash
 #using npm
 $ npm install -D tailwindcss@npm:@tailwindcss/postcss7-compat postcss@^7 autoprefixer@^9
@@ -17,6 +18,13 @@ $ npx tailwindcss-cli@latest init
 ```
 
 ## Installation
+
 ```bash
 $ npm install
+```
+
+## Running the app
+
+```bash
+$ npm start
 ```
