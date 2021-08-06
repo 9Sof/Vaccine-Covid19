@@ -70,6 +70,8 @@ const RegisterForm = () => {
 
   useMemo(() => {
     setOTPmock(null);
+    setOTP("");
+    setCheckOTP(false);
     if (phoneNumber && idCard) {
       otpRef.current.style.contentVisibility = "hidden";
     }
@@ -271,19 +273,6 @@ const RegisterForm = () => {
             />
           </Form.Item>
         </Col>
-        <Col
-          xs={24}
-          sm={24}
-          md={12}
-          lg={12}
-          xl={12}
-          ref={otpRef}
-          style={{ contentVisibility: "hidden" }}
-        >
-          <Form.Item className="mb-0" label="กรอกหมายเลขรหัส OTP">
-            <Input onChange={(e) => setOTP(e.target.value)} />
-          </Form.Item>
-        </Col>
         {checkOTP && (
           <Col xs={24} sm={24} md={12} lg={12} xl={12}>
             <Form.Item
@@ -304,6 +293,16 @@ const RegisterForm = () => {
           </Col>
         )}
       </Row>
+      <div
+        className=" m-auto"
+        ref={otpRef}
+        style={{ contentVisibility: "hidden", width: "150px" }}
+      >
+        <Form.Item className="mb-0" label="กรอกหมายเลขรหัส OTP">
+          <Input value={otp} onChange={(e) => setOTP(e.target.value)} />
+        </Form.Item>
+      </div>
+
       {!checkOTP ? (
         <Form.Item className="text-center p-5">
           <Button shape="round" type="primary" htmlType="submit" size="large">
