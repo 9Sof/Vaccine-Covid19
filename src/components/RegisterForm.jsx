@@ -25,7 +25,7 @@ const RegisterForm = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [idCard, setIdCard] = useState("");
 
-  const otpPost = async (phone_number, id_card) => {
+  const postOTP = async (phone_number, id_card) => {
     await axios
       .post(`${USERS_API}/otp`, { phone_number, id_card })
       .then((response) => {
@@ -47,12 +47,24 @@ const RegisterForm = () => {
       });
   };
 
-  const registerPost = async (values) => {
+  const postRegister = async (values) => {
     await axios
       .post(`${USERS_API}/register`, { ...values })
       .then((response) => {
         // handle success
-        console.log(response.data);
+        if (response.data.status === "success") {
+          notification.success({
+            message: "สำเร็จ!",
+            description: "ลงทะเบียนเรียบร้อยแล้ว",
+          });
+          history.push(`/${response.data.user.id}`);
+        }
+        if (response.data.status === "date full") {
+          notification.error({
+            message: "ไม่สำเร็จ!",
+            description: `จำนวนการจองฉีดวัคซัน ในวันที่ ${response.data.date} เต็มแล้ว`,
+          });
+        }
       })
       .catch((error) => {
         // handle error
@@ -79,7 +91,7 @@ const RegisterForm = () => {
 
   const onOTP = (phone_number, id_card) => {
     if (phone_number && id_card) {
-      otpPost(phone_number, id_card);
+      postOTP(phone_number, id_card);
       otpRef.current.style.contentVisibility = "auto";
     }
   };
@@ -93,12 +105,7 @@ const RegisterForm = () => {
       cancelText: "ยกเลิก",
       onOk() {
         console.log("ยืนยัน");
-        registerPost(values);
-        notification.success({
-          message: "สำเร็จ!",
-          description: "ทำการลงทะเบียนฉีด Vaccine Covid-19 สำเร็จ",
-        });
-        history.push("/");
+        postRegister(values);
       },
       onCancel() {
         console.log("ยกเลิก");
@@ -126,197 +133,216 @@ const RegisterForm = () => {
   );
 
   return (
-    <Form
-      style={
-        window.innerWidth < 1200
-          ? { padding: "20px 20%" }
-          : { padding: "20px 30%" }
-      }
-      name="nest-messages"
-      onFinish={onFinish}
-      layout="vertical"
-    >
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={24} md={12} lg={12} xl={12}>
-          <Form.Item
-            className="mb-0"
-            name="first_name"
-            label="ชื่อ (ภาษาไทย)"
-            rules={[
-              {
-                required: true,
-                message: "กรุณาใส่ชื่อให้ครบถ้วนของคุณ!",
-                whitespace: true,
-              },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue("name_prefix")) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(
-                    new Error("กรุณาใส่ชื่อให้ครบถ้วนของคุณ!")
-                  );
-                },
-              }),
-            ]}
-          >
-            <Input addonBefore={GenderSelector} />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={24} md={12} lg={12} xl={12}>
-          <Form.Item
-            className="mb-0"
-            name="last_name"
-            label="นามสกุล (ภาษาไทย)"
-            rules={[
-              {
-                required: true,
-                message: "กรุณาใส่นามสกุลของคุณ!",
-                whitespace: true,
-              },
-            ]}
-          >
-            <Input />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={24} md={12} lg={12} xl={12}>
-          <Form.Item
-            className="mb-0"
-            name="id_card"
-            label="หลายเลขประจำตัวบัตรประชาชน"
-            rules={[
-              {
-                required: true,
-                message: "กรุณาใส่ข้อมูลหลายเลขประจำตัวบัตรประชาชนให้ครบถ้วน!",
-                whitespace: true,
-              },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || value.length === 13) {
-                    if (!isNaN(value)) {
-                      return Promise.resolve();
-                    }
-                  }
-                  return Promise.reject(
-                    new Error(
-                      "กรุณาใส่ข้อมูลหลายเลขประจำตัวบัตรประชาชนให้ครบถ้วน!"
-                    )
-                  );
-                },
-              }),
-            ]}
-          >
-            <Input maxLength="13" onChange={(e) => setIdCard(e.target.value)} />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={24} md={12} lg={12} xl={12}>
-          <Form.Item
-            className="mb-0"
-            name="birthdate"
-            label="วัน เดือน ปีเกิด"
-            rules={[
-              {
-                required: true,
-                type: "object",
-                message: "กรุณาใส่ข้อมูลวันเกิดให้ครบถ้วน!",
-                whitespace: true,
-              },
-            ]}
-          >
-            <DatePicker />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={24} md={12} lg={12} xl={12}>
-          <Form.Item
-            className="mb-0"
-            name="email"
-            label="อีเมล์"
-            rules={[
-              {
-                type: "email",
-                message: "อีเมล์ไม่ถูกต้อง!",
-                whitespace: true,
-              },
-            ]}
-          >
-            <Input />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={24} md={12} lg={12} xl={12}>
-          <Form.Item
-            className="mb-0"
-            name="phone_number"
-            label="เบอร์โทร"
-            rules={[
-              {
-                required: true,
-                message: "กรุณาใส่เบอร์โทรให้ครบถ้วน!",
-                whitespace: true,
-              },
-              () => ({
-                validator(_, value) {
-                  if (!value || value.length === 10) {
-                    if (!isNaN(value)) {
-                      return Promise.resolve();
-                    }
-                  }
-                  return Promise.reject(
-                    new Error("กรุณาใส่เบอร์โทรให้ครบถ้วน!")
-                  );
-                },
-              }),
-            ]}
-          >
-            <Input
-              maxLength="10"
-              onChange={(e) => setPhoneNumber(e.target.value)}
-            />
-          </Form.Item>
-        </Col>
-        {checkOTP && (
-          <Col xs={24} sm={24} md={12} lg={12} xl={12}>
-            <Form.Item
-              className="mb-0"
-              name="vaccination_date"
-              label="วันที่ขอนัดฉีด Vaccine Covid-19"
-              rules={[
-                {
-                  required: true,
-                  type: "object",
-                  message: "กรุณาใส่วันที่ขอนัดฉีดวัคซีนให้ครบถ้วน!",
-                  whitespace: true,
-                },
-              ]}
-            >
-              <DatePicker />
-            </Form.Item>
-          </Col>
-        )}
-      </Row>
-      <div
-        className=" m-auto"
-        ref={otpRef}
-        style={{ contentVisibility: "hidden", width: "150px" }}
+    <div>
+      <h1
+        style={{ fontSize: "2vh", fontWeight: "bold", margin: "2vh auto" }}
+        className="text-center  "
       >
-        <Form.Item className="mb-0" label="กรอกหมายเลขรหัส OTP">
-          <Input value={otp} onChange={(e) => setOTP(e.target.value)} />
-        </Form.Item>
-      </div>
+        ลงทะเบียนฉีด Vaccine Covid-19
+      </h1>
+      <Row>
+        <Col span={5}></Col>
+        <Col span={14}>
+          <Form name="nest-messages" onFinish={onFinish} layout="vertical">
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={24} md={12} lg={12} xl={12}>
+                <Form.Item
+                  className="mb-0"
+                  name="first_name"
+                  label="ชื่อ (ภาษาไทย)"
+                  rules={[
+                    {
+                      required: true,
+                      message: "กรุณาใส่ชื่อให้ครบถ้วนของคุณ!",
+                      whitespace: true,
+                    },
+                    ({ getFieldValue }) => ({
+                      validator(_, value) {
+                        if (!value || getFieldValue("name_prefix")) {
+                          return Promise.resolve();
+                        }
+                        return Promise.reject(
+                          new Error("กรุณาใส่ชื่อให้ครบถ้วนของคุณ!")
+                        );
+                      },
+                    }),
+                  ]}
+                >
+                  <Input addonBefore={GenderSelector} />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={24} md={12} lg={12} xl={12}>
+                <Form.Item
+                  className="mb-0"
+                  name="last_name"
+                  label="นามสกุล (ภาษาไทย)"
+                  rules={[
+                    {
+                      required: true,
+                      message: "กรุณาใส่นามสกุลของคุณ!",
+                      whitespace: true,
+                    },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={24} md={12} lg={12} xl={12}>
+                <Form.Item
+                  className="mb-0"
+                  name="id_card"
+                  label="หลายเลขประจำตัวบัตรประชาชน"
+                  rules={[
+                    {
+                      required: true,
+                      message:
+                        "กรุณาใส่ข้อมูลหลายเลขประจำตัวบัตรประชาชนให้ครบถ้วน!",
+                      whitespace: true,
+                    },
+                    ({ getFieldValue }) => ({
+                      validator(_, value) {
+                        if (!value || value.length === 13) {
+                          if (!isNaN(value)) {
+                            return Promise.resolve();
+                          }
+                        }
+                        return Promise.reject(
+                          new Error(
+                            "กรุณาใส่ข้อมูลหลายเลขประจำตัวบัตรประชาชนให้ครบถ้วน!"
+                          )
+                        );
+                      },
+                    }),
+                  ]}
+                >
+                  <Input
+                    maxLength="13"
+                    onChange={(e) => setIdCard(e.target.value)}
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={24} md={12} lg={12} xl={12}>
+                <Form.Item
+                  className="mb-0"
+                  name="birthdate"
+                  label="วัน เดือน ปีเกิด"
+                  rules={[
+                    {
+                      required: true,
+                      type: "object",
+                      message: "กรุณาใส่ข้อมูลวันเกิดให้ครบถ้วน!",
+                      whitespace: true,
+                    },
+                  ]}
+                >
+                  <DatePicker />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={24} md={12} lg={12} xl={12}>
+                <Form.Item
+                  className="mb-0"
+                  name="email"
+                  label="อีเมล์"
+                  rules={[
+                    {
+                      type: "email",
+                      message: "อีเมล์ไม่ถูกต้อง!",
+                      whitespace: true,
+                    },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={24} md={12} lg={12} xl={12}>
+                <Form.Item
+                  className="mb-0"
+                  name="phone_number"
+                  label="เบอร์โทร"
+                  rules={[
+                    {
+                      required: true,
+                      message: "กรุณาใส่เบอร์โทรให้ครบถ้วน!",
+                      whitespace: true,
+                    },
+                    () => ({
+                      validator(_, value) {
+                        if (!value || value.length === 10) {
+                          if (!isNaN(value)) {
+                            return Promise.resolve();
+                          }
+                        }
+                        return Promise.reject(
+                          new Error("กรุณาใส่เบอร์โทรให้ครบถ้วน!")
+                        );
+                      },
+                    }),
+                  ]}
+                >
+                  <Input
+                    maxLength="10"
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                  />
+                </Form.Item>
+              </Col>
+              {checkOTP && (
+                <Col xs={24} sm={24} md={12} lg={12} xl={12}>
+                  <Form.Item
+                    className="mb-0"
+                    name="vaccination_date"
+                    label="วันที่ขอนัดฉีด Vaccine Covid-19"
+                    rules={[
+                      {
+                        required: true,
+                        type: "object",
+                        message: "กรุณาใส่วันที่ขอนัดฉีดวัคซีนให้ครบถ้วน!",
+                        whitespace: true,
+                      },
+                    ]}
+                  >
+                    <DatePicker />
+                  </Form.Item>
+                </Col>
+              )}
+            </Row>
+            <div
+              className=" m-auto"
+              ref={otpRef}
+              style={{ contentVisibility: "hidden", width: "150px" }}
+            >
+              <Form.Item className="mb-0" label="กรอกหมายเลขรหัส OTP">
+                <Input value={otp} onChange={(e) => setOTP(e.target.value)} />
+              </Form.Item>
+            </div>
 
-      {!checkOTP ? (
-        <Form.Item className="text-center p-5">
-          <Button shape="round" type="primary" htmlType="submit" size="large">
-            รับ OTP
-          </Button>
-        </Form.Item>
-      ) : (
-        <Form.Item className="text-center p-5">
-          <Button shape="round" type="primary" htmlType="submit" size="large">
-            ลงทะเบียน
-          </Button>
-        </Form.Item>
-      )}
-    </Form>
+            {!checkOTP ? (
+              <Form.Item className="text-center p-5">
+                <Button
+                  shape="round"
+                  type="primary"
+                  htmlType="submit"
+                  size="large"
+                >
+                  รับ OTP
+                </Button>
+              </Form.Item>
+            ) : (
+              <Form.Item className="text-center p-5">
+                <Button
+                  shape="round"
+                  type="primary"
+                  htmlType="submit"
+                  size="large"
+                >
+                  ลงทะเบียน
+                </Button>
+              </Form.Item>
+            )}
+          </Form>
+        </Col>
+        <Col span={5}></Col>
+      </Row>
+    </div>
   );
 };
 

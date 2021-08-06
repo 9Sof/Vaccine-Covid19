@@ -9,7 +9,7 @@ const Register = () => {
         className="text-center text-2xl p-5 text-white"
         style={{ background: "#145287" }}
       >
-        <h1 className="text-white">ลงทะเบียนฉีด Vaccine Covid-19</h1>
+        <h1 className="text-white">Vaccine Covid-19</h1>
       </Layout.Header>
       <Layout.Content className="bg-white">
         <RegisterForm />
