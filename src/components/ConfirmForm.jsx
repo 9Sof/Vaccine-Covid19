@@ -97,7 +97,7 @@ const ConfirmForm = ({ user }) => {
               </Col>
               <Col span={24} className="flex justify-center p-5">
                 <QRCode
-                  value={`หมายเลขรหัสยืนยันการจอง: ${user.id}, ชื่อ (ภาษาไทย): ${user.name_prefix} ${user.first_name} ${user.last_name}, วันที่ขอนัดฉีด Vaccine Covid-19: ${vaccination_date}`}
+                  value={`หมายเลขรหัสยืนยันการจอง: ${user.id}, ชื่อ-นามสกุล: ${user.name_prefix} ${user.first_name} ${user.last_name}, วันที่ขอนัดฉีด Vaccine Covid-19: ${vaccination_date}`}
                 />
               </Col>
             </Row>

@@ -1,8 +1,17 @@
 import React from "react";
 import { Layout } from "antd";
 import RegisterForm from "../components/RegisterForm";
+import { useHistory } from "react-router-dom";
 
 const Register = () => {
+  const history = useHistory();
+  const nowDate = new Date();
+  const startRegister = new Date("2021-08-10 09:00:00");
+  
+  if(nowDate <= startRegister){
+    history.push("/");
+  }
+  
   return (
     <Layout style={window.innerWidth < 768 ? {} : { height: "100vh" }}>
       <Layout.Header
