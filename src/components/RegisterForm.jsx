@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Form,
   Input,
@@ -18,11 +18,14 @@ const USERS_API = "http://localhost:8000/users";
 
 const RegisterForm = () => {
   const history = useHistory();
+  const otpRef = useRef(null);
   const [otp, setOTP] = useState("");
   const [checkOTP, setCheckOTP] = useState(false);
   const [OTPmock, setOTPmock] = useState(null);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [idCard, setIdCard] = useState("");
 
-  const OTPVerify = async (phone_number, id_card) => {
+  const otpPost = async (phone_number, id_card) => {
     await axios
       .post(`${USERS_API}/otp`, { phone_number, id_card })
       .then((response) => {
@@ -30,7 +33,12 @@ const RegisterForm = () => {
         if (response.data.status === "success") {
           setOTPmock(response.data.phoneOTP[phone_number]);
         } else {
-          setOTPmock(null);
+          otpRef.current.style.contentVisibility = "hidden";
+          notification.error({
+            message: "ไม่สำเร็จ!",
+            description:
+              "หลายเลขประจำตัวบัตรประชาชนหรือเบอร์โทร มีการลงทะเบียนแล้ว",
+          });
         }
       })
       .catch((error) => {
@@ -39,7 +47,7 @@ const RegisterForm = () => {
       });
   };
 
-  const onRegister = async (values) => {
+  const registerPost = async (values) => {
     await axios
       .post(`${USERS_API}/register`, { ...values })
       .then((response) => {
@@ -56,35 +64,24 @@ const RegisterForm = () => {
     console.log(OTPmock);
     if (+otp === OTPmock) {
       setCheckOTP(true);
-      Modal.destroyAll();
+      otpRef.current.style.contentVisibility = "hidden";
     }
   }, [otp, OTPmock]);
 
-  const onOTP = (values) => {
-    OTPVerify(values.phone_number, values.id_card);
-    if (OTPmock) {
-      Modal.confirm({
-        title: `โปรดใส่หมายเลข OTP ที่ส่งทางเบอร์ 
-        ******${values.phone_number.slice(-4)}`,
-        icon: <ExclamationCircleOutlined />,
-        content: (
-          <div className="text-center">
-            <Input
-              className="w-auto"
-              onChange={(e) => setOTP(e.target.value)}
-              placeholder="OTP"
-            />
-          </div>
-        ),
-        okText: "ยืนยัน",
-        cancelText: "ยกเลิก",
-        onOk() {},
-        onCancel() {
-          console.log("ยกเลิก");
-        },
-      });
+  useMemo(() => {
+    setOTPmock(null);
+    if (phoneNumber && idCard) {
+      otpRef.current.style.contentVisibility = "hidden";
+    }
+  }, [phoneNumber, idCard]);
+
+  const onOTP = (phone_number, id_card) => {
+    if (phone_number && id_card) {
+      otpPost(phone_number, id_card);
+      otpRef.current.style.contentVisibility = "auto";
     }
   };
+
   const onSubmit = (values) => {
     Modal.confirm({
       title: "ลงทะเบียนฉีด Vaccine Covid-19?",
@@ -93,8 +90,8 @@ const RegisterForm = () => {
       okText: "ยืนยัน",
       cancelText: "ยกเลิก",
       onOk() {
-        console.log("ยืนยัน", values);
-        onRegister(values);
+        console.log("ยืนยัน");
+        registerPost(values);
         notification.success({
           message: "สำเร็จ!",
           description: "ทำการลงทะเบียนฉีด Vaccine Covid-19 สำเร็จ",
@@ -106,8 +103,9 @@ const RegisterForm = () => {
       },
     });
   };
+
   const onFinish = (values) => {
-    !checkOTP ? onOTP(values) : onSubmit(values);
+    !checkOTP ? onOTP(values.phone_number, values.id_card) : onSubmit(values);
   };
 
   const GenderSelector = (
@@ -124,6 +122,7 @@ const RegisterForm = () => {
       </Select>
     </Form.Item>
   );
+
   return (
     <Form
       style={
@@ -192,7 +191,7 @@ const RegisterForm = () => {
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   if (!value || value.length === 13) {
-                    if (!isNaN(value) || !getFieldValue("id_card")) {
+                    if (!isNaN(value)) {
                       return Promise.resolve();
                     }
                   }
@@ -205,7 +204,7 @@ const RegisterForm = () => {
               }),
             ]}
           >
-            <Input maxLength="13" />
+            <Input maxLength="13" onChange={(e) => setIdCard(e.target.value)} />
           </Form.Item>
         </Col>
         <Col xs={24} sm={24} md={12} lg={12} xl={12}>
@@ -252,10 +251,10 @@ const RegisterForm = () => {
                 message: "กรุณาใส่เบอร์โทรให้ครบถ้วน!",
                 whitespace: true,
               },
-              ({ getFieldValue }) => ({
+              () => ({
                 validator(_, value) {
                   if (!value || value.length === 10) {
-                    if (!isNaN(value) || !getFieldValue("phone_number")) {
+                    if (!isNaN(value)) {
                       return Promise.resolve();
                     }
                   }
@@ -266,7 +265,23 @@ const RegisterForm = () => {
               }),
             ]}
           >
-            <Input maxLength="10" />
+            <Input
+              maxLength="10"
+              onChange={(e) => setPhoneNumber(e.target.value)}
+            />
+          </Form.Item>
+        </Col>
+        <Col
+          xs={24}
+          sm={24}
+          md={12}
+          lg={12}
+          xl={12}
+          ref={otpRef}
+          style={{ contentVisibility: "hidden" }}
+        >
+          <Form.Item className="mb-0" label="กรอกหมายเลขรหัส OTP">
+            <Input onChange={(e) => setOTP(e.target.value)} />
           </Form.Item>
         </Col>
         {checkOTP && (
